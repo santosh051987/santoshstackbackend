@@ -1,13 +1,14 @@
 from sqlalchemy.orm import Session
-from .database import SessionLocal, engine, Base
-from . import models
+import models, schemas, database
 from datetime import datetime
+from database import engine
+from auth import get_password_hash
 
 def seed_data():
     # Create tables if they don't exist
-    Base.metadata.create_all(bind=engine)
+    models.Base.metadata.create_all(bind=engine)
     
-    db = SessionLocal()
+    db = database.SessionLocal()
     try:
         # 1. Seed About Us
         if not db.query(models.AboutUs).first():
@@ -53,6 +54,18 @@ def seed_data():
             ]
             db.add_all(projects)
             print(f"Added {len(projects)} projects")
+
+        # 3. Seed users
+        if db.query(models.User).count() == 0:
+            users = models.User(
+                    name="Santosh Singh",
+                    email="admin@santoshstack.in",
+                    hashed_password=get_password_hash("admin123"),
+                    is_admin=True
+                )
+            
+            db.add(users)
+            print(f"Added {users.name} users")
 
         db.commit()
         print("Database seeding completed successfully!")
