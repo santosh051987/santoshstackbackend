@@ -66,6 +66,13 @@ def get_products(category_id: Optional[int] = None, db: Session = Depends(get_db
         query = query.filter(models.Product.category_id == category_id)
     return query.all()
 
+@app.get("/api/products/slug/{slug}", response_model=schemas.Product)
+def get_product_by_slug(slug: str, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.slug == slug).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
 @app.post("/api/products", response_model=schemas.Product)
 def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     db_product = models.Product(**product.dict())
